@@ -11,9 +11,17 @@ import socketserver
 from threading import Condition
 from http import server
 
+PORT = 8000
+VIDEO_WIDTH = 640  # 1640
+VIDEO_HEIGHT = 480  # 1232
 
-VIDEO_WIDTH = 1640
-VIDEO_HEIGHT = 1232
+ROTATE = True  # rotate image 90 deg
+
+# img_width, img_height = (
+#     (VIDEO_WIDTH, VIDEO_HEIGHT) if not ROTATE else (VIDEO_HEIGHT, VIDEO_WIDTH)
+# )
+
+img_width, img_height = VIDEO_WIDTH, VIDEO_HEIGHT
 
 PAGE = f"""\
 <html>
@@ -22,7 +30,7 @@ PAGE = f"""\
 </head>
 <body>
 <center><h1>All the chickens in the house?</h1></center>
-<center><img src="stream.mjpg" width="{VIDEO_WIDTH}" height="{VIDEO_HEIGHT}"></center>
+<center><img src="stream.mjpg" width="{img_width}" height="{img_height}"></center>
 </body>
 </html>
 """
@@ -98,11 +106,16 @@ with picamera.PiCamera(
 ) as camera:
     output = StreamingOutput()
     # Uncomment the next line to change your Pi's Camera rotation (in degrees)
-    # camera.rotation = 90
+    if ROTATE:
+        camera.rotation = -90
+
     camera.start_recording(output, format="mjpeg")
     try:
-        address = ("", 8000)
+        address = ("", PORT)
         server = StreamingServer(address, StreamingHandler)
         server.serve_forever()
+    except KeyboardInterrupt:
+        print("stopped.")
+
     finally:
         camera.stop_recording()
