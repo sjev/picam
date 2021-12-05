@@ -17,11 +17,14 @@ VIDEO_HEIGHT = 480  # 1232
 
 ROTATE = True  # rotate image 90 deg
 
-# img_width, img_height = (
-#     (VIDEO_WIDTH, VIDEO_HEIGHT) if not ROTATE else (VIDEO_HEIGHT, VIDEO_WIDTH)
-# )
+RESOLUTION = (
+    f"{VIDEO_HEIGHT}x{VIDEO_WIDTH}" if ROTATE else f"{VIDEO_WIDTH}x{VIDEO_HEIGHT}"
+)
 
-img_width, img_height = VIDEO_WIDTH, VIDEO_HEIGHT
+img_width, img_height = (
+    (VIDEO_WIDTH, VIDEO_HEIGHT) if not ROTATE else (VIDEO_HEIGHT, VIDEO_WIDTH)
+)
+
 
 PAGE = f"""\
 <html>
@@ -30,7 +33,7 @@ PAGE = f"""\
 </head>
 <body>
 <center><h1>All the chickens in the house?</h1></center>
-<center><img src="stream.mjpg" width="{img_width}" height="{img_height}"></center>
+<center><img src="stream.mjpg" ></center>
 </body>
 </html>
 """
@@ -101,9 +104,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
 
 
-with picamera.PiCamera(
-    resolution=f"{VIDEO_WIDTH}x{VIDEO_HEIGHT}", framerate=24
-) as camera:
+with picamera.PiCamera(resolution=RESOLUTION, framerate=24) as camera:
     output = StreamingOutput()
     # Uncomment the next line to change your Pi's Camera rotation (in degrees)
     if ROTATE:
