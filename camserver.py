@@ -49,6 +49,7 @@ led.off()
 
 is_streaming = False
 
+
 class StreamingOutput(object):
     def __init__(self):
         self.frame = None
@@ -92,7 +93,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header("Content-Type", "image/jpeg")
             self.end_headers()
 
-            camera.wait_recording(0.5)
+            camera.wait_recording(0.1)
             buffer = io.BytesIO()
             camera.capture(buffer, use_video_port=True, format="jpeg")
 
