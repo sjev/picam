@@ -4,12 +4,18 @@
 # Source code from the official PiCamera package
 # http://picamera.readthedocs.io/en/latest/recipes2.html#web-streaming
 
+# Serving on port 8000
+
 import io
+from gpiozero import LED
 import picamera
 import logging
 import socketserver
 from threading import Condition
 from http import server
+import time
+
+logging.basicConfig(level=logging.INFO)
 
 PORT = 8000
 VIDEO_WIDTH = 640  # 1640
@@ -38,6 +44,11 @@ PAGE = f"""\
 </html>
 """
 
+led = LED(4)
+led.off()
+
+is_streaming = False
+
 
 class StreamingOutput(object):
     def __init__(self):
@@ -59,6 +70,9 @@ class StreamingOutput(object):
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
+
+        global is_streaming
+
         if self.path == "/":
             self.send_response(301)
             self.send_header("Location", "/index.html")
@@ -70,7 +84,27 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header("Content-Length", len(content))
             self.end_headers()
             self.wfile.write(content)
+        elif self.path == "/frame.jpg":
+            logging.info("Requesting frame")
+            logging.info("Switching led ON")
+            led.on()
+            time.sleep(0.1)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "image/jpeg")
+            self.end_headers()
+            self.wfile.write(output.frame)
+
+            if not is_streaming:
+                logging.info("Switching led OFF")
+                led.off()
+
         elif self.path == "/stream.mjpg":
+
+            is_streaming = True
+            logging.info("Switching led ON")
+            led.on()
+
             self.send_response(200)
             self.send_header("Age", 0)
             self.send_header("Cache-Control", "no-cache, private")
@@ -94,6 +128,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                 logging.warning(
                     "Removed streaming client %s: %s", self.client_address, str(e)
                 )
+            finally:
+                is_streaming = False
+                logging.info("Switching led OFF")
+                led.off()
         else:
             self.send_error(404)
             self.end_headers()
