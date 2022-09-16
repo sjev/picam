@@ -88,12 +88,16 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             logging.info("Requesting frame")
             logging.info("Switching led ON")
             led.on()
-            time.sleep(0.1)
 
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
             self.end_headers()
-            self.wfile.write(output.frame)
+
+            camera.wait_recording(0.5)
+            buffer = io.BytesIO()
+            camera.capture(buffer, use_video_port=True, format="jpeg")
+
+            self.wfile.write(buffer.getvalue())
 
             if not is_streaming:
                 logging.info("Switching led OFF")
