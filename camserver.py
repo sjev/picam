@@ -71,8 +71,6 @@ class StreamingOutput(object):
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
 
-        global is_streaming
-
         if self.path == "/":
             self.send_response(301)
             self.send_header("Location", "/index.html")
@@ -148,6 +146,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 
 with picamera.PiCamera(resolution=RESOLUTION, framerate=24) as camera:
     output = StreamingOutput()
+    is_streaming = False
     # Uncomment the next line to change your Pi's Camera rotation (in degrees)
     if ROTATE:
         camera.rotation = -90
