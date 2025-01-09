@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Web streaming example
 # Source code from the official PiCamera package
